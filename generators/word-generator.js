@@ -8,7 +8,6 @@ const {
   HeightRule,
   Packer,
   Paragraph,
-  SectionType,
   Table,
   TableCell,
   TableRow,
@@ -26,7 +25,14 @@ const TABLE_BORDER_SIDES = {
 };
 
 function makeBorder(border) {
-  if (border === "nil" || border === "none" || border === false) {
+  if (
+    border === "nil" ||
+    border === "none" ||
+    border === false ||
+    (border &&
+      typeof border === "object" &&
+      ["nil", "none"].includes(border.style))
+  ) {
     return { style: BorderStyle.NIL, size: 0, color: "FFFFFF" };
   }
   const style =
@@ -234,7 +240,6 @@ async function generateWordDocument({ reportData, reportLayout, outputPath }) {
 
     return {
       properties: {
-        type: SectionType.CONTINUOUS,
         page: {
           size: {
             width: Math.round(page.widthPt * 20),

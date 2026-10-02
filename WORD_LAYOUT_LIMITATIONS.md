@@ -1,56 +1,37 @@
-# Word Layout Limitations and Design Rules
+# Residential Valuation Report Generator
 
-## Purpose
+## Run the Express backend
 
-This file records how Microsoft Word may handle the report layout. The JSON should describe the structure while allowing Word to position content safely on the page.
+From this project folder, install dependencies once with `npm install`, then start the backend with:
 
-## Page size
+```powershell
+npm run backend
+```
 
-- The generated report must use A4 portrait paper.
-- A4 is 210 mm × 297 mm, or approximately 595.28 × 841.89 points.
-- The usable area is smaller than the paper because of the margins and the printer's printable area.
-- The final margins still need to be agreed and recorded in the JSON.
+By default it listens at `http://127.0.0.1:3000`. Set `BACKEND_HOST` or `BACKEND_PORT` to override those defaults.
 
-## Margins, header, and footer
+## Draft upload flow
 
-- Keep report content inside the page margins.
-- Leave enough room for the header and footer so they do not overlap the main content.
-- Printers may have different non-printable edge areas, so content placed close to a page edge may be clipped.
-- Do not use exact X/Y positions for normal text and tables unless a specific element must be anchored.
+The backend accepts one `.docx` file up to 10 MB. The single-call endpoint is:
 
-## Text and page flow
+```text
+POST /api/document/process
+multipart/form-data field: file
+```
 
-- Word wraps text when it reaches the edge of its cell or paragraph area.
-- Longer text makes rows and sections taller.
-- When content no longer fits on a page, Word continues it on a later page.
-- The number of pages may change when text, fonts, margins, or printer settings change.
+For each upload it extracts a structure index, saves an internal JSON snapshot under `output/layouts/<layoutId>.json`, generates a DOCX, and returns that DOCX as the response. The response includes `X-Layout-Id` and `X-Layout-Json` headers so the caller can retrieve the saved JSON with `GET /api/layout/<layoutId>`.
 
-## Tables
+The steps can also be called separately:
 
-- Tables can continue onto later pages.
-- A table's header row can be set to repeat on later pages.
-- Word may split a row across pages unless the row is configured to stay together.
-- If a row is kept together but cannot fit in the remaining space, Word moves it to the next page.
-- Merged cells and nested tables can make table sizing and page breaks harder to control.
-- Avoid fixed row heights when cells contain text that may wrap.
+- `POST /api/layout/extract` with multipart field `file` saves and returns the JSON snapshot.
+- `GET /api/layout/<layoutId>` reads a saved snapshot.
+- `POST /api/layout/generate` with the snapshot JSON in the request body returns a DOCX.
+- `GET /api/health` checks whether the backend is running.
 
-## Blank cover table and border overrides
+Each upload gets a unique layout ID, so concurrent uploads do not overwrite each other's JSON. Snapshots remain in `output/layouts` for subsequent handling; generated DOCX response files are removed after download.
 
-- Build the blank cover as one 18-row, two-column table. Keep its fixed 9330-twip width, 553-twip indent, 4861/4469-twip column split, row minimum heights, and beige cell fills in `config/report-layout-v2.json`.
-- Apply the black single-line outer and inside borders at table level, then retain each cell's `borders` overrides. A cell border set to `nil` suppresses only that edge; omitting an override leaves the table border visible. Do not replace these mixed per-cell settings with a uniform border preset.
-- Keep the first cover row merged across both columns. The tall logo band below it hides the center divider, while later rows restore it and selectively suppress horizontal edges, matching the supplied Word template.
-- Use separate Word sections for the cover and report details so their page margins can match the reference and the tall blank cover table stays on one page.
+## Current automation scope
 
-## Images and placeholders
+The snapshot contains a readable index of sections, page sizes/orientations, tables, cells, spans, border declarations, and image counts, plus the source DOCX package encoded as base64 with a SHA-256 integrity check. Generation restores that package exactly, which preserves the whole report structure and current text/values, including content that the structure index does not interpret.
 
-- The QR section should be represented by an empty bordered box only.
-- Do not include a QR image, QR data, or QR instruction text in the blank layout.
-- The company logo and stamp need their image assets and placement rules before they can be reproduced accurately.
-- Images may move when nearby text or tables grow, depending on how they are anchored.
-
-## Layout choices for this project
-
-- Use automatic text flow for regular paragraphs and tables.
-- Use explicit page breaks only where the report clearly starts a new section.
-- Use fixed positioning only for elements that must visually overlap or stay in a specific place.
-- Check the generated Word document on A4 pages because JSON alone cannot guarantee the final printed appearance.
+This gives a complete upload → internal JSON → generated DOCX round-trip for the supplied draft. It does not yet infer or change report values, fill a blank template from another source, or automatically correct the header. Those transformations need defined input fields and mapping rules; header correction can remain manual as agreed.

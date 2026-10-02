@@ -1,329 +1,237 @@
-const { readDocumentXml } = require("./docx-layout-reader");
+const JSZip = require("jszip");
+const { xml2js } = require("xml-js");
 
-const WORD_NAMESPACE =
-  "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+const WORD_PREFIX = "w:";
 
-function childElements(element, localName) {
-  if (!element) return [];
-
-  return Array.from(element.childNodes).filter(
-    (node) =>
-      node.nodeType === 1 &&
-      node.namespaceURI === WORD_NAMESPACE &&
-      (!localName || node.localName === localName),
+function children(node, localName) {
+  if (!node) return [];
+  return (node.elements ?? []).filter(
+    (element) =>
+      element.type === "element" &&
+      element.name === `${WORD_PREFIX}${localName}`,
   );
 }
 
-function firstChild(element, localName) {
-  return childElements(element, localName)[0] ?? null;
+function first(node, localName) {
+  return children(node, localName)[0];
 }
 
-function wordAttribute(element, name) {
-  return element?.getAttributeNS(WORD_NAMESPACE, name) || null;
+function attr(node, localName) {
+  if (!node || node.attributes == null) return undefined;
+  return (
+    node.attributes[`${WORD_PREFIX}${localName}`] ?? node.attributes[localName]
+  );
 }
 
-function borderValue(element) {
-  if (!element) return null;
+function numberAttr(node, name) {
+  const value = Number(attr(node, name));
+  return Number.isFinite(value) ? value : undefined;
+}
 
-  const style = wordAttribute(element, "val") || "single";
-
-  if (style === "nil" || style === "none") {
-    return style;
-  }
+function borderObject(element) {
+  if (!element) return undefined;
+  const style = attr(element, "val") ?? "single";
+  if (style === "nil" || style === "none") return "nil";
 
   const border = { style };
-  const color = wordAttribute(element, "color");
-  const size = Number(wordAttribute(element, "sz"));
-
-  if (color && /^[0-9a-f]{6}$/i.test(color)) {
-    border.color = color;
-  }
-
-  if (Number.isFinite(size) && size > 0) {
-    border.size = size;
-  }
-
+  const color = attr(element, "color");
+  const size = numberAttr(element, "sz");
+  if (color && /^[\da-f]{6}$/i.test(color)) border.color = color;
+  if (size !== undefined && size > 0) border.size = size;
   return border;
 }
 
-function readBorders(properties, sideNames, fallbackProperties = []) {
+const CELL_EDGES = ["top", "bottom", "left", "right", "start", "end"];
+const TABLE_EDGES = {
+  top: "top",
+  bottom: "bottom",
+  left: "left",
+  right: "right",
+  insideH: "insideHorizontal",
+  insideV: "insideVertical",
+  start: "start",
+  end: "end",
+};
+
+function bordersFrom(element, containerName, edges) {
+  const container = first(element, containerName);
+  if (!container) return {};
+  const borders = {};
+  for (const edge of edges) {
+    const declaration = first(container, edge);
+    if (declaration) borders[edge] = borderObject(declaration);
+  }
+  return borders;
+}
+
+function sameBorder(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function effectiveCellOverrides(cellProps, rowExceptions, tableBorders) {
+  const rowBorders = bordersFrom(rowExceptions, "tblBorders", CELL_EDGES);
+  const cellBorders = bordersFrom(cellProps, "tcBorders", CELL_EDGES);
   const result = {};
 
-  for (const source of [...fallbackProperties, properties]) {
-    const bordersElement =
-      firstChild(source, "tcBorders") || firstChild(source, "tblBorders");
-
-    if (!bordersElement) continue;
-
-    for (const [xmlName, jsonName] of sideNames) {
-      const borderElement = firstChild(bordersElement, xmlName);
-
-      if (borderElement) {
-        result[jsonName] = borderValue(borderElement);
+  for (const edge of CELL_EDGES) {
+    if (Object.hasOwn(cellBorders, edge)) {
+      result[edge] = cellBorders[edge];
+      continue;
+    }
+    if (Object.hasOwn(rowBorders, edge)) {
+      const tableEdge = tableBorders[edge];
+      if (
+        !Object.hasOwn(tableBorders, edge) ||
+        !sameBorder(rowBorders[edge], tableEdge)
+      ) {
+        result[edge] = rowBorders[edge];
       }
     }
   }
-
   return Object.keys(result).length ? result : undefined;
 }
 
-function readMargins(marginsElement) {
-  if (!marginsElement) return undefined;
-
-  const margins = {};
-
-  for (const side of ["top", "right", "bottom", "left"]) {
-    const value = Number(wordAttribute(firstChild(marginsElement, side), "w"));
-    if (Number.isFinite(value)) margins[side] = value;
-  }
-
-  return Object.keys(margins).length ? margins : undefined;
-}
-
 function paragraphAlignment(paragraph) {
-  const paragraphProperties = firstChild(paragraph, "pPr");
-  const alignment = wordAttribute(firstChild(paragraphProperties, "jc"), "val");
-
-  if (["left", "center", "right"].includes(alignment)) {
-    return alignment;
-  }
-
-  return undefined;
+  const alignment = attr(first(first(paragraph, "pPr"), "jc"), "val");
+  return ["left", "center", "right"].includes(alignment)
+    ? alignment
+    : undefined;
 }
 
-function readSectionSettings(sectionProperties) {
-  const pageSize = firstChild(sectionProperties, "pgSz");
-  const pageMargins = firstChild(sectionProperties, "pgMar");
-
-  const page = {
-    widthPt: Number(wordAttribute(pageSize, "w")) / 20,
-    heightPt: Number(wordAttribute(pageSize, "h")) / 20,
-  };
-
-  const marginsPt = {};
-
-  for (const side of ["top", "right", "bottom", "left"]) {
-    const value = Number(wordAttribute(pageMargins, side));
-    if (Number.isFinite(value)) marginsPt[side] = value / 20;
-  }
-
-  return {
-    page,
-    marginsPt,
-  };
+function cellShading(properties) {
+  const shading = first(properties, "shd");
+  const fill = attr(shading, "fill");
+  return fill && /^[\da-f]{6}$/i.test(fill) ? fill : undefined;
 }
 
-function readCell(cell, rowProperties) {
-  const properties = firstChild(cell, "tcPr");
-  const span = Number(
-    wordAttribute(firstChild(properties, "gridSpan"), "val") || 1,
-  );
-  const shading = wordAttribute(firstChild(properties, "shd"), "fill");
-  const verticalAlignment = wordAttribute(
-    firstChild(properties, "vAlign"),
-    "val",
-  );
-  const verticalMerge = firstChild(properties, "vMerge");
-  const nestedTable = firstChild(cell, "tbl");
-  const firstParagraph = firstChild(cell, "p");
+function cellSpan(properties) {
+  return numberAttr(first(properties, "gridSpan"), "val") ?? 1;
+}
 
-  const output = nestedTable
-    ? { ...readTable(nestedTable), type: "table" }
-    : { value: "" };
-
-  if (span > 1) output.columnSpan = span;
-  if (shading && shading !== "auto") output.shading = shading;
-
-  if (["top", "center", "bottom"].includes(verticalAlignment)) {
-    output.verticalAlignment = verticalAlignment;
-  }
-
-  if (verticalMerge) {
-    output.verticalMerge = wordAttribute(verticalMerge, "val") || "continue";
-  }
-
-  const alignment = paragraphAlignment(firstParagraph);
-  if (alignment) output.alignment = alignment;
-
-  const rowBorderProperties = firstChild(rowProperties, "tblPrEx");
-  const borders = readBorders(
+function makeCell(cell, rowExceptions, tableBorders) {
+  const properties = first(cell, "tcPr");
+  const paragraph = first(cell, "p");
+  const result = { value: "" };
+  const span = cellSpan(properties);
+  if (span > 1) result.columnSpan = span;
+  const width = numberAttr(first(properties, "tcW"), "w");
+  if (width !== undefined && width > 0) result.widthDxa = width;
+  const shading = cellShading(properties);
+  if (shading) result.shading = shading;
+  const alignment = paragraphAlignment(paragraph);
+  if (alignment) result.alignment = alignment;
+  const borders = effectiveCellOverrides(
     properties,
-    [
-      ["top", "top"],
-      ["bottom", "bottom"],
-      ["left", "left"],
-      ["right", "right"],
-      ["start", "start"],
-      ["end", "end"],
-    ],
-    [rowBorderProperties],
+    rowExceptions,
+    tableBorders,
   );
-
-  if (borders) output.borders = borders;
-
-  return output;
+  if (borders) result.borders = borders;
+  return result;
 }
 
-function readTable(table) {
-  const properties = firstChild(table, "tblPr");
-  const grid = firstChild(table, "tblGrid");
-  const gridWidths = childElements(grid, "gridCol").map((column) =>
-    Number(wordAttribute(column, "w")),
+function parseTable(table) {
+  const properties = first(table, "tblPr");
+  const tableBorders = bordersFrom(properties, "tblBorders", CELL_EDGES);
+  const rowNodes = children(table, "tr");
+  const grid = first(table, "tblGrid");
+  const gridWidths = children(grid, "gridCol").map(
+    (column) => numberAttr(column, "w") ?? 0,
   );
   const totalGridWidth = gridWidths.reduce((sum, width) => sum + width, 0);
+  const declaredWidth = numberAttr(first(properties, "tblW"), "w");
+  const widthDxa = declaredWidth > 0 ? declaredWidth : totalGridWidth;
+  const borderValues = {};
 
-  const tableWidth = firstChild(properties, "tblW");
-  const widthDxa = Number(wordAttribute(tableWidth, "w"));
-  const widthType = wordAttribute(tableWidth, "type");
+  for (const [xmlEdge, jsonEdge] of Object.entries(TABLE_EDGES)) {
+    const border = bordersFrom(properties, "tblBorders", [xmlEdge])[xmlEdge];
+    if (border !== undefined) borderValues[jsonEdge] = border;
+  }
+
+  const rows = rowNodes.map((row) => {
+    const rowProperties = first(row, "trPr");
+    const rowExceptions = first(row, "tblPrEx");
+    const height = numberAttr(first(rowProperties, "trHeight"), "val");
+    return {
+      ...(height ? { heightTwips: height } : {}),
+      ...(first(rowProperties, "cantSplit") ? { cantSplit: true } : {}),
+      cells: children(row, "tc").map((cell) =>
+        makeCell(cell, rowExceptions, tableBorders),
+      ),
+    };
+  });
 
   const columnWidthsPercent =
-    totalGridWidth > 0
+    gridWidths.length && totalGridWidth
       ? gridWidths.map((width) => (width / totalGridWidth) * 100)
       : undefined;
 
-  const rows = childElements(table, "tr").map((row) => {
-    const rowProperties = firstChild(row, "trPr");
-    const height = Number(
-      wordAttribute(firstChild(rowProperties, "trHeight"), "val"),
-    );
+  return {
+    type: "table",
+    ...(widthDxa ? { widthDxa } : {}),
+    ...(numberAttr(first(properties, "tblInd"), "w")
+      ? { indentTwips: numberAttr(first(properties, "tblInd"), "w") }
+      : {}),
+    ...(columnWidthsPercent ? { columnWidthsPercent } : {}),
+    ...(Object.keys(borderValues).length ? { borders: borderValues } : {}),
+    rows,
+  };
+}
 
-    const outputRow = {
-      cells: childElements(row, "tc").map((cell) =>
-        readCell(cell, rowProperties),
-      ),
-    };
+function sectionPage(documentXml) {
+  const body = first(documentXml, "body");
+  const section = first(body, "sectPr");
+  const size = first(section, "pgSz");
+  const margins = first(section, "pgMar");
+  const width = numberAttr(size, "w");
+  const height = numberAttr(size, "h");
+  const page = {
+    widthPt: width ? width / 20 : 595.28,
+    heightPt: height ? height / 20 : 841.89,
+  };
+  const marginsPt = {};
+  for (const edge of ["top", "right", "bottom", "left"]) {
+    const value = numberAttr(margins, edge);
+    if (value !== undefined) marginsPt[edge] = value / 20;
+  }
+  return { page, marginsPt };
+}
 
-    if (Number.isFinite(height) && height > 0) {
-      outputRow.heightTwips = height;
-    }
+async function extractDocxLayout(buffer) {
+  const zip = await JSZip.loadAsync(buffer);
+  const documentFile = zip.file("word/document.xml");
+  if (!documentFile)
+    throw new Error("The uploaded file is not a valid Word document.");
 
-    if (firstChild(rowProperties, "tblHeader")) {
-      outputRow.header = true;
-    }
-
-    if (firstChild(rowProperties, "cantSplit")) {
-      outputRow.cantSplit = true;
-    }
-
-    return outputRow;
+  const documentXml = xml2js(await documentFile.async("string"), {
+    compact: false,
+    spaces: 0,
   });
-
-  const output = { rows };
-
-  if (columnWidthsPercent) output.columnWidthsPercent = columnWidthsPercent;
-  if (widthType === "dxa" && Number.isFinite(widthDxa)) {
-    output.widthDxa = widthDxa;
-  }
-
-  const indent = Number(wordAttribute(firstChild(properties, "tblInd"), "w"));
-
-  if (Number.isFinite(indent) && indent > 0) {
-    output.indentTwips = indent;
-  }
-
-  const borders = readBorders(properties, [
-    ["top", "top"],
-    ["bottom", "bottom"],
-    ["left", "left"],
-    ["right", "right"],
-    ["insideH", "insideHorizontal"],
-    ["insideV", "insideVertical"],
-  ]);
-
-  if (borders) output.borders = borders;
-
-  const margins = readMargins(firstChild(properties, "tblCellMar"));
-  if (margins) output.margins = margins;
-
-  return output;
-}
-
-function readParagraph(paragraph) {
-  const paragraphProperties = firstChild(paragraph, "pPr");
-  const output = {
-    type: "text",
-    role: "blank-paragraph",
-    value: "",
-  };
-
-  const alignment = paragraphAlignment(paragraph);
-  if (alignment) output.alignment = alignment;
-
-  if (firstChild(paragraphProperties, "pageBreakBefore")) {
-    output.pageBreakBefore = true;
-  }
-
-  return output;
-}
-
-async function extractLayout(docxBuffer) {
-  const xmlDocument = await readDocumentXml(docxBuffer);
-  const body = firstChild(xmlDocument.documentElement, "body");
-
-  if (!body) {
-    throw new Error("The Word document body was not found.");
-  }
-
-  const sections = [];
-  let blocks = [];
-
-  function finishSection(sectionProperties) {
-    const settings = readSectionSettings(sectionProperties);
-
-    sections.push({
-      id: `section-${sections.length + 1}`,
-      marginsPt: settings.marginsPt,
-      blocks,
-    });
-
-    blocks = [];
-    return settings;
-  }
-
-  let firstSectionSettings = null;
-
-  for (const element of childElements(body)) {
-    if (element.localName === "p") {
-      blocks.push(readParagraph(element));
-
-      const paragraphProperties = firstChild(element, "pPr");
-      const sectionProperties = firstChild(paragraphProperties, "sectPr");
-
-      if (sectionProperties) {
-        const settings = finishSection(sectionProperties);
-        firstSectionSettings ??= settings;
-      }
-    } else if (element.localName === "tbl") {
-      blocks.push({
-        ...readTable(element),
-        type: "table",
-      });
-    } else if (element.localName === "sectPr") {
-      const settings = finishSection(element);
-      firstSectionSettings ??= settings;
+  const documentNode = first(documentXml, "document");
+  const body = first(documentNode, "body");
+  if (!body) throw new Error("The Word document has no document body.");
+  const blocks = (body.elements ?? []).flatMap((element) => {
+    if (element.type !== "element") return [];
+    if (element.name === `${WORD_PREFIX}tbl`) return [parseTable(element)];
+    if (element.name === `${WORD_PREFIX}p`) {
+      const properties = first(element, "pPr");
+      const alignment = paragraphAlignment(element);
+      const block = { type: "text", value: "" };
+      if (alignment) block.alignment = alignment;
+      if (first(properties, "pageBreakBefore")) block.pageBreakBefore = true;
+      return [block];
     }
-  }
-
-  if (blocks.length > 0 || sections.length === 0) {
-    const settings = finishSection(null);
-    firstSectionSettings ??= settings;
-  }
-
-  const page = firstSectionSettings?.page ?? {
-    widthPt: 612,
-    heightPt: 792,
-  };
+    return [];
+  });
+  const page = sectionPage(documentNode);
 
   return {
     schemaVersion: "1.0",
     source: "uploaded.docx",
-    description: "Structure-only layout extracted from a Word document.",
-    document: {
-      page,
-      marginsPt: firstSectionSettings?.marginsPt ?? {},
-    },
-    sections,
+    description:
+      "Structure-only Word layout. Text values are intentionally blank.",
+    document: { page: page.page, marginsPt: page.marginsPt },
+    sections: [{ id: "section-1", marginsPt: page.marginsPt, blocks }],
   };
 }
 
-module.exports = { extractLayout };
+module.exports = { extractDocxLayout };
