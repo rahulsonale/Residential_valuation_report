@@ -1,0 +1,361 @@
+{
+  "schemaVersion": "1.0",
+  "document": {
+    "page": {
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "orientation": "portrait"
+    },
+    "marginsPt": {
+      "top": null,
+      "right": null,
+      "bottom": null,
+      "left": null
+    }
+  },
+  "layoutBehavior": {
+    "textFlow": "automatic",
+    "useFixedPageCoordinates": false
+  },
+  "sections": [
+    {
+      "id": "cover",
+      "name": "Cover",
+      "pageBreakBefore": false,
+      "blocks": [
+        {
+          "id": "company-header",
+          "type": "columns",
+          "columns": [
+            {
+              "widthPercent": 65,
+              "alignment": "left",
+              "blocks": [
+                { "type": "text", "role": "company-name", "value": "" },
+                {
+                  "type": "text",
+                  "role": "services-and-credentials",
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "widthPercent": 35,
+              "alignment": "right",
+              "blocks": [
+                {
+                  "type": "image",
+                  "role": "company-logo",
+                  "source": null
+                },
+                { "type": "text", "role": "contact-details", "value": "" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cover-information",
+          "type": "table",
+          "widthPercent": 100,
+          "columnCount": 4,
+          "border": "visible",
+          "rows": [
+            {
+              "cells": [
+                { "role": "reference-label" },
+                { "role": "reference-value" },
+                { "role": "date-label" },
+                { "role": "date-value" }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "role": "report-title",
+                  "columnSpan": 4,
+                  "alignment": "center"
+                }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "purpose-label" },
+                { "role": "purpose-value", "columnSpan": 3 }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "customer-label" },
+                { "role": "customer-value", "columnSpan": 3 }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "property-address", "columnSpan": 3 },
+                { "role": "qr-code", "alignment": "center" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "report-details",
+      "name": "Report details",
+      "pageBreakBefore": true,
+      "blocks": [
+        {
+          "id": "details-company-header",
+          "type": "columns",
+          "columns": [
+            {
+              "widthPercent": 65,
+              "alignment": "left",
+              "blocks": [
+                { "type": "text", "role": "company-name", "value": "" },
+                {
+                  "type": "text",
+                  "role": "services-and-credentials",
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "widthPercent": 35,
+              "alignment": "right",
+              "blocks": [
+                {
+                  "type": "image",
+                  "role": "company-logo",
+                  "source": null
+                },
+                { "type": "text", "role": "contact-details", "value": "" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "report-addressee",
+          "type": "text",
+          "role": "addressee",
+          "value": "",
+          "alignment": "left"
+        },
+        {
+          "id": "executive-summary-heading",
+          "type": "text",
+          "role": "section-heading",
+          "value": "Executive Summary",
+          "alignment": "center"
+        },
+        {
+          "id": "property-details-table",
+          "type": "table",
+          "columnWidthsPercent": [10, 45, 45],
+          "repeatHeaderRows": true,
+          "rows": [
+            {
+              "header": true,
+              "cells": [
+                { "role": "serial-heading", "value": "S.No" },
+                { "role": "description-heading", "value": "Description" },
+                { "role": "details-heading", "value": "Details" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "1" },
+                {
+                  "role": "property-description",
+                  "value": "Name of the Borrower(s) / Customer(s)"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "2" },
+                {
+                  "role": "property-description",
+                  "value": "Representative(s) details who is / are accompanying at the site"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "3" },
+                {
+                  "role": "property-description",
+                  "value": "Purpose for which the valuation is made"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "4" },
+                {
+                  "role": "property-description",
+                  "value": "Date of inspection"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "5" },
+                {
+                  "role": "property-description",
+                  "value": "Date on which the valuation is made"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "6" },
+                {
+                  "role": "property-description",
+                  "value": "Property Address"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "7" },
+                {
+                  "role": "property-description",
+                  "value": "Brief description of the property (Including leasehold/freehold etc)"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "8" },
+                {
+                  "role": "property-description",
+                  "value": "Valuation approach"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "9" },
+                {
+                  "role": "property-description",
+                  "value": "UDS Land Area as per deed"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "10", "rowSpan": 3 },
+                {
+                  "role": "property-description",
+                  "value": "Super Built-up area",
+                  "rowSpan": 3
+                },
+                {
+                  "role": "property-value-part-1",
+                  "label": "As per Document",
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "role": "property-value-part-2",
+                  "label": "As per site",
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "role": "property-value-part-3",
+                  "label": "As per Plan",
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "11" },
+                {
+                  "role": "property-description",
+                  "value": "Remarks about the threat of acquisition of land for public service purposes, road widening, or applicability of CRZ provisions or land being located in an Archaeological sensitive place"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                { "role": "serial-number", "value": "12" },
+                {
+                  "role": "property-description",
+                  "value": "Special Remarks, If any"
+                },
+                { "role": "property-value", "value": "" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "valuation-summary-heading",
+          "type": "text",
+          "role": "section-heading",
+          "value": "Valuation Summary",
+          "alignment": "center"
+        },
+        {
+          "id": "valuation-summary-table",
+          "type": "table",
+          "columnWidthsPercent": [60, 40],
+          "rows": [
+            {
+              "cells": [
+                {
+                  "role": "valuation-label",
+                  "value": "Fair Market Value of the property"
+                },
+                { "role": "valuation-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "role": "valuation-label",
+                  "value": "Realizable Value of the property"
+                },
+                { "role": "valuation-value", "value": "" }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "role": "valuation-label",
+                  "value": "Distress Sale Value of the property"
+                },
+                { "role": "valuation-value", "value": "" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reference-footer",
+          "type": "text",
+          "role": "reference-number",
+          "value": "",
+          "alignment": "right"
+        }
+      ]
+    }
+  ]
+}

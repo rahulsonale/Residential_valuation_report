@@ -1,0 +1,41 @@
+{
+  "company": {
+    "name": "",
+    "servicesAndCredentials": "",
+    "logo": "",
+    "contactDetails": ""
+  },
+  "report": {
+    "referenceNumber": "",
+    "date": "",
+    "title": "Residential Property Valuation Report",
+    "purpose": "",
+    "customer": "",
+    "propertyAddress": "",
+    "addressee": "",
+    "qrCode": ""
+  },
+  "propertyDetails": {
+    "borrowerCustomer": "",
+    "representatives": "",
+    "valuationPurpose": "",
+    "inspectionDate": "",
+    "valuationDate": "",
+    "propertyAddress": "",
+    "propertyDescription": "",
+    "valuationApproach": "",
+    "udsLandArea": "",
+    "superBuiltUpArea": {
+      "asPerDocument": "",
+      "asPerSite": "",
+      "asPerPlan": ""
+    },
+    "acquisitionRemarks": "",
+    "specialRemarks": ""
+  },
+  "valuationSummary": {
+    "fairMarketValue": "",
+    "realizableValue": "",
+    "distressSaleValue": ""
+  }
+}

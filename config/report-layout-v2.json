@@ -1,0 +1,803 @@
+{
+  "schemaVersion": "1.1",
+  "source": "Reference.pdf",
+  "description": "Structural outline of the supplied two-page valuation report. Text and case-specific values are placeholders; page, block, table, and nesting relationships describe the blueprint.",
+  "document": {
+    "page": {
+      "widthPt": 612,
+      "heightPt": 792,
+      "orientation": "portrait"
+    },
+    "background": "warm beige cover; white report-details page",
+    "outerFrame": true,
+    "marginsPt": {
+      "top": 26,
+      "right": 54,
+      "bottom": 14,
+      "left": 54
+    }
+  },
+  "sections": [
+    {
+      "id": "cover",
+      "page": 1,
+      "blocks": [
+        {
+          "id": "cover-blank-structure",
+          "type": "table",
+          "widthDxa": 9330,
+          "indentTwips": 553,
+          "columnWidthsPercent": [52.1, 47.9],
+          "margins": {
+            "top": 0,
+            "bottom": 0,
+            "left": 0,
+            "right": 0
+          },
+          "borders": {
+            "top": "single",
+            "bottom": "single",
+            "left": "single",
+            "right": "single",
+            "insideHorizontal": "single",
+            "insideVertical": "single"
+          },
+          "rows": [
+            {
+              "heightTwips": 503,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "C4BC96",
+                  "columnSpan": 2,
+                  "alignment": "center"
+                }
+              ]
+            },
+            {
+              "heightTwips": 1669,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "right": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "left": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 1413,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {}
+                }
+              ]
+            },
+            {
+              "heightTwips": 459,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 704,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 529,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 313,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 486,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 711,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 517,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 714,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {}
+                }
+              ]
+            },
+            {
+              "heightTwips": 1028,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {}
+                }
+              ]
+            },
+            {
+              "heightTwips": 302,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {}
+                }
+              ]
+            },
+            {
+              "heightTwips": 391,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 317,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 859,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 632,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil",
+                    "bottom": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "bottom": "nil"
+                  }
+                }
+              ]
+            },
+            {
+              "heightTwips": 1916,
+              "cells": [
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil"
+                  }
+                },
+                {
+                  "value": "",
+                  "shading": "DDD9C4",
+                  "borders": {
+                    "top": "nil"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "marginsPt": {
+        "top": 45,
+        "right": 54,
+        "bottom": 53.25,
+        "left": 54
+      }
+    },
+    {
+      "id": "report-details",
+      "page": 2,
+      "blocks": [
+        {
+          "id": "report-company-header",
+          "type": "table",
+          "widthPercent": 100,
+          "rows": [
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "company-name",
+                  "columnSpan": 3,
+                  "alignment": "center",
+                  "shading": "beige"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "company-services",
+                  "columnSpan": 1
+                },
+                {
+                  "type": "image",
+                  "role": "company-logo",
+                  "columnSpan": 1,
+                  "alignment": "center"
+                },
+                {
+                  "type": "text",
+                  "role": "office-address-and-contact",
+                  "columnSpan": 1,
+                  "alignment": "right"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "addressee",
+          "type": "text",
+          "role": "bank-addressee",
+          "alignment": "left",
+          "bold": true
+        },
+        {
+          "id": "executive-summary",
+          "type": "text",
+          "role": "executive-summary-heading",
+          "alignment": "center",
+          "bold": true
+        },
+        {
+          "id": "property-details-heading",
+          "type": "text",
+          "role": "property-details-heading",
+          "alignment": "center",
+          "bold": true,
+          "borderTop": true,
+          "borderBottom": true
+        },
+        {
+          "id": "property-details-table",
+          "type": "table",
+          "columnWidthsPercent": [6, 43, 51],
+          "repeatHeaderRows": true,
+          "rows": [
+            {
+              "header": true,
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-heading"
+                },
+                {
+                  "type": "text",
+                  "role": "description-heading"
+                },
+                {
+                  "type": "text",
+                  "role": "details-heading"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "role": "borrower-label"
+                },
+                {
+                  "type": "text",
+                  "role": "borrower-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "role": "representative-label"
+                },
+                {
+                  "type": "text",
+                  "role": "representative-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "role": "purpose-label"
+                },
+                {
+                  "type": "text",
+                  "role": "purpose-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "role": "inspection-date-label"
+                },
+                {
+                  "type": "text",
+                  "role": "inspection-date-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "role": "valuation-date-label"
+                },
+                {
+                  "type": "text",
+                  "role": "valuation-date-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "role": "property-address-label"
+                },
+                {
+                  "type": "text",
+                  "role": "property-address-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "role": "description-label"
+                },
+                {
+                  "type": "text",
+                  "role": "description-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "role": "approach-label"
+                },
+                {
+                  "type": "text",
+                  "role": "approach-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "role": "uds-label"
+                },
+                {
+                  "type": "text",
+                  "role": "uds-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "role": "area-label"
+                },
+                {
+                  "type": "table",
+                  "role": "area-subtable",
+                  "rows": [
+                    {
+                      "cells": [
+                        {
+                          "type": "text",
+                          "role": "area-document-label"
+                        },
+                        {
+                          "type": "text",
+                          "role": "area-document-value"
+                        }
+                      ]
+                    },
+                    {
+                      "cells": [
+                        {
+                          "type": "text",
+                          "role": "area-site-label"
+                        },
+                        {
+                          "type": "text",
+                          "role": "area-site-value"
+                        }
+                      ]
+                    },
+                    {
+                      "cells": [
+                        {
+                          "type": "text",
+                          "role": "area-plan-label"
+                        },
+                        {
+                          "type": "text",
+                          "role": "area-plan-value"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "role": "acquisition-remarks-label"
+                },
+                {
+                  "type": "text",
+                  "role": "acquisition-remarks-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "serial-number",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "role": "special-remarks-label"
+                },
+                {
+                  "type": "text",
+                  "role": "special-remarks-value"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "valuation-summary-heading",
+          "type": "text",
+          "role": "valuation-summary-heading",
+          "alignment": "center",
+          "bold": true,
+          "borderTop": true,
+          "borderBottom": true
+        },
+        {
+          "id": "valuation-summary-table",
+          "type": "table",
+          "columnWidthsPercent": [55, 45],
+          "rows": [
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "fair-market-label"
+                },
+                {
+                  "type": "text",
+                  "role": "fair-market-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "realizable-label"
+                },
+                {
+                  "type": "text",
+                  "role": "realizable-value"
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "type": "text",
+                  "role": "distress-label"
+                },
+                {
+                  "type": "text",
+                  "role": "distress-value"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reference-footer",
+          "type": "text",
+          "role": "reference-number",
+          "alignment": "left",
+          "italic": true
+        },
+        {
+          "id": "valuer-seal",
+          "type": "image",
+          "role": "valuer-seal",
+          "position": "over-lower-summary-area"
+        }
+      ]
+    }
+  ]
+}
