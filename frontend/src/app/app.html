@@ -1,0 +1,46 @@
+<header class="topbar">
+  <div class="brand-mark">RV</div>
+  <div>
+    <strong>Residential Valuation</strong>
+    <span>Report generator</span>
+  </div>
+</header>
+
+<main class="page">
+  <section class="intro">
+    <p class="eyebrow">DOCUMENT WORKFLOW</p>
+    <h1>Create a valuation report</h1>
+    <p class="description">
+      Upload a reference Word document, extract its layout, then generate a
+      document from the extracted JSON.
+    </p>
+  </section>
+
+  <section class="workflow">
+    <article class="step-card">
+      <div class="step-number">1</div>
+      <h2>Choose a reference file</h2>
+      <p>Select a Word document in .docx format.</p>
+
+      <label class="file-picker">
+        <span>Choose DOCX file</span>
+        <input type="file" accept=".docx" />
+      </label>
+
+      <button type="button" disabled>Extract layout JSON</button>
+    </article>
+
+    <article class="step-card">
+      <div class="step-number">2</div>
+      <h2>Generate the document</h2>
+      <p>Use the extracted layout JSON to create a Word document.</p>
+
+      <div class="file-status">No layout extracted yet</div>
+      <button type="button" disabled>Generate DOCX</button>
+    </article>
+  </section>
+
+  <p class="note">
+    The generated document will be downloadable as a .docx file.
+  </p>
+</main>
