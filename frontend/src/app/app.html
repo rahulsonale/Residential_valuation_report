@@ -1,4 +1,4 @@
-<header class="topbar">
+\<header class="topbar">
   <div class="brand-mark">RV</div>
   <div>
     <strong>Residential Valuation</strong>
@@ -24,10 +24,43 @@
 
       <label class="file-picker">
         <span>Choose DOCX file</span>
-        <input type="file" accept=".docx" />
+        <input
+          type="file"
+          accept=".docx"
+          (change)="onFileSelected($event)"
+        />
       </label>
 
-      <button type="button" disabled>Extract layout JSON</button>
+      @if (selectedFile(); as file) {
+        <div class="file-status">Selected: {{ file.name }}</div>
+      }
+
+      <button
+        type="button"
+        (click)="extractLayout()"
+        [disabled]="!selectedFile() || isExtracting()"
+      >
+        {{ isExtracting() ? 'Extracting...' : 'Extract layout JSON' }}
+      </button>
+
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
+
+      @if (layout(); as extractedLayout) {
+        <div class="success-panel">
+          <strong>Layout extracted and saved</strong>
+          <span>Layout ID: {{ extractedLayout.layoutId }}</span>
+          <span>Sections: {{ extractedLayout.structure?.sectionCount }}</span>
+          <span>Tables: {{ extractedLayout.structure?.topLevelTableCount }}</span>
+          <span>Saved by the backend in output/layouts.</span>
+        </div>
+
+        <details class="json-preview">
+          <summary>View extracted JSON</summary>
+          <pre>{{ extractedLayout | json }}</pre>
+        </details>
+      }
     </article>
 
     <article class="step-card">
@@ -35,8 +68,20 @@
       <h2>Generate the document</h2>
       <p>Use the extracted layout JSON to create a Word document.</p>
 
-      <div class="file-status">No layout extracted yet</div>
-      <button type="button" disabled>Generate DOCX</button>
+      <div class="file-status">
+        {{ layout() ? 'Layout is ready to use' : 'No layout extracted yet' }}
+      </div>
+<button
+  type="button"
+  (click)="generateDocument()"
+  [disabled]="!layout() || isGenerating()"
+>
+  {{ isGenerating() ? 'Generating...' : 'Generate DOCX' }}
+</button>
+
+@if (generateMessage()) {
+  <p>{{ generateMessage() }}</p>
+}
     </article>
   </section>
 

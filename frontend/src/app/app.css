@@ -144,3 +144,42 @@ button:disabled {
     margin-top: 40px;
   }
 }
+
+.success-panel {
+  display: grid;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 9px;
+  background: #eaf5ef;
+  color: #245c43;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.error-message {
+  margin-top: 12px;
+  color: #b42318;
+}
+
+.json-preview {
+  margin-top: 16px;
+}
+
+.json-preview summary {
+  cursor: pointer;
+  color: #174d43;
+  font-weight: 700;
+}
+
+.json-preview pre {
+  max-height: 360px;
+  overflow: auto;
+  padding: 14px;
+  border-radius: 9px;
+  background: #f4f6f5;
+  color: #26332e;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
