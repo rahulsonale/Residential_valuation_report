@@ -67,11 +67,17 @@ app.post(
     }
 
     try {
+      console.log(
+        `[API] Extract request received: ${request.file.originalname}`,
+      );
       const layout = await extractLayout(
         request.file.buffer,
         request.file.originalname,
       );
       const layoutId = await saveLayout(layout);
+      console.log(
+        `[API] Layout extracted and saved: ${layoutId} (${layout.structure?.topLevelTableCount ?? 0} top-level tables)`,
+      );
       response.json({ ...layout, layoutId });
     } catch (error) {
       response.status(400).json({
@@ -100,7 +106,6 @@ app.get("/api/layout/:layoutId", async (request, response, next) => {
     next(error);
   }
 });
-
 
 app.post(
   "/api/document/process",
@@ -150,6 +155,10 @@ app.post("/api/layout/generate", async (request, response, next) => {
       return;
     }
 
+    console.log(
+      `[API] Generate request received: ${layout.source ?? "JSON layout"}`,
+    );
+
     await fs.mkdir(outputDir, { recursive: true });
     const outputPath = path.join(
       outputDir,
@@ -160,6 +169,9 @@ app.post("/api/layout/generate", async (request, response, next) => {
       reportLayout: layout,
       outputPath,
     });
+
+    console.log(`[API] Generated DOCX: ${outputPath}`);
+
     response.download(outputPath, "generated-layout.docx", async (error) => {
       await fs.rm(outputPath, { force: true }).catch(() => {});
       if (error && !response.headersSent) next(error);

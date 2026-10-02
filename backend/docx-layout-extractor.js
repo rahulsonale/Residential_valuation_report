@@ -288,6 +288,9 @@ function tableOutline(table, index) {
 }
 
 async function extractDocxLayout(buffer, sourceName = "uploaded.docx") {
+  console.log(
+    `[Extractor] Reading DOCX: ${sourceName} (${buffer.length} bytes)`,
+  );
   const zip = await JSZip.loadAsync(buffer);
   const documentFile = zip.file("word/document.xml");
   if (!documentFile)
@@ -341,6 +344,9 @@ async function extractDocxLayout(buffer, sourceName = "uploaded.docx") {
           date: file.date?.toISOString(),
         };
       }),
+  );
+  console.log(
+    `[Extractor] Found ${sections.length} sections, ${topLevelTables.length} top-level tables, ${tableRows.length} rows, ${tableCells.length} cells, and ${imageParts.length} image parts.`,
   );
 
   return {

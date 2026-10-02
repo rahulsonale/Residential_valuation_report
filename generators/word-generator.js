@@ -231,6 +231,7 @@ function renderBlock(block) {
 }
 
 async function generateWordDocument({ reportData, reportLayout, outputPath }) {
+  console.log(`[Generator] Creating DOCX: ${outputPath}`);
   if (
     reportLayout.packagePayload?.encoding === "docx-parts-json" &&
     Array.isArray(reportLayout.packagePayload.parts)

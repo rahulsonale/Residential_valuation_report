@@ -41,8 +41,10 @@ async function main() {
   const buffer = await Packer.toBuffer(document);
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, buffer);
-
-  console.log(`Created ${outputPath}`);
+  console.log(
+    `[Nested Table Demo] DOCX written successfully (${buffer.length} bytes).`,
+  );
+  console.log(`[Nested Table Demo] Created: ${outputPath}`);
 }
 
 main().catch((error) => {
