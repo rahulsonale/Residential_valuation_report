@@ -1,37 +1,77 @@
-# Residential Valuation Report Generator
+# UBI Umbare DOCX to JSON to DOCX Workflow
 
-## Run the Express backend
+## Goal
 
-From this project folder, install dependencies once with `npm install`, then start the backend with:
+Use the new reference document, `UBI - Umbare (3).docx`, to produce a JSON representation of its document structure, then use that JSON to generate a DOCX and compare the result with the reference. Image matching in tables is lower priority for this pass.
 
-```powershell
-npm run backend
-```
+## Reference review
 
-By default it listens at `http://127.0.0.1:3000`. Set `BACKEND_HOST` or `BACKEND_PORT` to override those defaults.
+The reference was reviewed structurally before processing. It is a Union Bank of India valuation report with multiple sections and tables. The initial inspection found 3 portrait A4 sections, 12 main tables, and 268 body paragraphs. These are structural inspection results; a rendered page-by-page visual review was not completed at that point.
 
-## Draft upload flow
+## Work completed so far
 
-The backend accepts one `.docx` file up to 10 MB. The single-call endpoint is:
+1. Chose the new reference document: `UBI - Umbare (3).docx`.
+2. Confirmed that the existing Express backend is intended to support the same extract-then-generate workflow used for the previous reference. No code changes were planned for this first attempt, provided both endpoints work for this document.
+3. In Postman, sent the reference DOCX to the extraction endpoint using `multipart/form-data`, with a file field named `file`.
+4. Received a JSON response and saved it in `D:\Residential-Valuation-Report\output\layouts` as `ubi-umbare-layout.json` (or the chosen filename if renamed).
+5. Prepared the next step: submit that saved JSON to the generation endpoint. The user has not yet confirmed that this request has been sent or that the generated DOCX has been saved.
+
+## Step 1: Extract the reference to JSON
+
+In Postman, create a request with:
+
+- Method: `POST`
+- URL: `http://127.0.0.1:3000/api/layout/extract`
+- Body type: `form-data`
+- Key: `file`
+- Change the field type from **Text** to **File**, then select `UBI - Umbare (3).docx`.
+
+Click **Send**. The successful response should be JSON describing the extracted document layout. Save the response as a new JSON file in:
 
 ```text
-POST /api/document/process
-multipart/form-data field: file
+D:\Residential-Valuation-Report\output\layouts
 ```
 
-For each upload it extracts a structure index, saves an internal JSON snapshot under `output/layouts/<layoutId>.json`, generates a DOCX, and returns that DOCX as the response. The response includes `X-Layout-Id` and `X-Layout-Json` headers so the caller can retrieve the saved JSON with `GET /api/layout/<layoutId>`.
+Use a distinct filename, for example `ubi-umbare-layout.json`, so the previous reference's JSON is not overwritten.
 
-The steps can also be called separately:
+## Step 2: Generate a DOCX from the JSON
 
-- `POST /api/layout/extract` with multipart field `file` saves and returns the JSON snapshot.
-- `GET /api/layout/<layoutId>` reads a saved snapshot.
-- `POST /api/layout/generate` with the snapshot JSON in the request body returns a DOCX.
-- `GET /api/health` checks whether the backend is running.
+In Postman, create another request:
 
-Each upload gets a unique layout ID, so concurrent uploads do not overwrite each other's JSON. Snapshots remain in `output/layouts` for subsequent handling; generated DOCX response files are removed after download.
+- Method: `POST`
+- URL: `http://127.0.0.1:3000/api/layout/generate`
+- Body type: **raw**
+- Raw format: **JSON**
+- Body: the complete contents of the newly saved layout JSON file.
 
-## Current automation scope
+Click **Send**. A successful request should return status `200 OK` and a DOCX file as binary response data. DOCX is a ZIP-based format, so the response may look like unreadable characters if Postman displays it as text; that is expected for binary data.
 
-The snapshot contains a readable index of sections, page sizes/orientations, tables, cells, spans, border declarations, and image counts, plus the source DOCX package encoded as base64 with a SHA-256 integrity check. Generation restores that package exactly, which preserves the whole report structure and current text/values, including content that the structure index does not interpret.
+Save the response as a `.docx` file, for example `ubi-umbare-generated.docx`. Ensure the saved filename ends in `.docx`, not `.json` or `.txt`.
 
-This gives a complete upload → internal JSON → generated DOCX round-trip for the supplied draft. It does not yet infer or change report values, fill a blank template from another source, or automatically correct the header. Those transformations need defined input fields and mapping rules; header correction can remain manual as agreed.
+## Step 3: Compare the generated DOCX with the reference
+
+Open both documents in Word and review:
+
+- Page count and page flow
+- Section/page orientation and margins
+- Table count, placement, row and column structure
+- Text and cell content
+- Borders, shading, fonts, and alignment
+- Images inside tables (deferred/lower priority for this pass)
+
+Record any differences. If extraction or generation fails, or the comparison shows missing structure or formatting, inspect the relevant endpoint/code and make a targeted change before repeating the workflow.
+
+## Current status
+
+- JSON extraction: **completed**; JSON saved in the layouts folder.
+- DOCX generation from that JSON: **next step; completion not yet confirmed**.
+- Reference comparison: **pending until the generated DOCX is saved**.
+
+## Backend notes
+
+The backend should be running locally on port `3000` for these Postman requests. The endpoints documented here are the two-stage workflow:
+
+- `POST /api/layout/extract` — DOCX upload to JSON response.
+- `POST /api/layout/generate` — JSON request to generated DOCX response.
+
+Opening `/api/layout/extract` directly in a browser is not the same as sending a file upload. Also, a browser `GET` to a `POST`-only endpoint can return `Route not found`; use Postman with the method and body described above.
