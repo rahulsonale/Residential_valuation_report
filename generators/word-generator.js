@@ -1,5 +1,7 @@
 const fs = require("node:fs/promises");
+const crypto = require("node:crypto");
 const path = require("node:path");
+const JSZip = require("jszip");
 const {
   AlignmentType,
   BorderStyle,
@@ -229,6 +231,96 @@ function renderBlock(block) {
 }
 
 async function generateWordDocument({ reportData, reportLayout, outputPath }) {
+  if (
+    reportLayout.packagePayload?.encoding === "docx-parts-json" &&
+    Array.isArray(reportLayout.packagePayload.parts)
+  ) {
+    const zip = new JSZip();
+    const requiredParts = new Set(["[Content_Types].xml", "word/document.xml"]);
+
+    for (const part of reportLayout.packagePayload.parts) {
+      if (
+        !part ||
+        typeof part.path !== "string" ||
+        !part.path ||
+        part.path.startsWith("/") ||
+        part.path.split("/").includes("..") ||
+        typeof part.content !== "string"
+      ) {
+        throw new Error("The JSON contains an invalid Word package part.");
+      }
+
+      const partBuffer =
+        part.encoding === "utf8"
+          ? Buffer.from(part.content, "utf8")
+          : part.encoding === "base64"
+            ? Buffer.from(part.content, "base64")
+            : null;
+      if (!partBuffer) {
+        throw new Error(
+          `Unsupported encoding for Word package part: ${part.path}`,
+        );
+      }
+      if (part.sha256) {
+        const partHash = crypto
+          .createHash("sha256")
+          .update(partBuffer)
+          .digest("hex");
+        if (partHash !== part.sha256) {
+          throw new Error(
+            `Word package part failed its integrity check: ${part.path}`,
+          );
+        }
+      }
+
+      requiredParts.delete(part.path);
+      zip.file(part.path, partBuffer, {
+        createFolders: false,
+        ...(part.date ? { date: new Date(part.date) } : {}),
+      });
+    }
+
+    if (requiredParts.size) {
+      throw new Error(
+        `The JSON is missing required Word parts: ${[...requiredParts].join(", ")}`,
+      );
+    }
+
+    const packageBuffer = await zip.generateAsync({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+      compressionOptions: { level: 6 },
+    });
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, packageBuffer);
+    return;
+  }
+
+  if (
+    reportLayout.packagePayload?.encoding === "base64" &&
+    typeof reportLayout.packagePayload.content === "string"
+  ) {
+    const packageBuffer = Buffer.from(
+      reportLayout.packagePayload.content,
+      "base64",
+    );
+    const expectedHash = reportLayout.packagePayload.sha256;
+    if (expectedHash) {
+      const actualHash = crypto
+        .createHash("sha256")
+        .update(packageBuffer)
+        .digest("hex");
+      if (actualHash !== expectedHash) {
+        throw new Error(
+          "The embedded Word package failed its integrity check.",
+        );
+      }
+    }
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, packageBuffer);
+    return;
+  }
+
   const page = reportLayout.document.page;
   const defaultMargins = reportLayout.document.marginsPt ?? {};
   const sections = reportLayout.sections.map((section) => {

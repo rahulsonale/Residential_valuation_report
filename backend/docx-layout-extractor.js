@@ -1,4 +1,5 @@
 const JSZip = require("jszip");
+const crypto = require("node:crypto");
 const { xml2js } = require("xml-js");
 
 const WORD_PREFIX = "w:";
@@ -196,7 +197,97 @@ function sectionPage(documentXml) {
   return { page, marginsPt };
 }
 
-async function extractDocxLayout(buffer) {
+function descendants(node, localName) {
+  const result = [];
+  const expectedName = `${WORD_PREFIX}${localName}`;
+  const visit = (current) => {
+    if (!current || current.type !== "element") return;
+    if (current.name === expectedName) result.push(current);
+    for (const child of current.elements ?? []) visit(child);
+  };
+  visit(node);
+  return result;
+}
+
+function sectionDescriptor(sectionProperties, id, blocks) {
+  const size = first(sectionProperties, "pgSz");
+  const margins = first(sectionProperties, "pgMar");
+  const widthTwips = numberAttr(size, "w");
+  const heightTwips = numberAttr(size, "h");
+  const orientation =
+    attr(size, "orient") ??
+    (widthTwips > heightTwips ? "landscape" : "portrait");
+  const marginsPt = {};
+  for (const edge of ["top", "right", "bottom", "left"]) {
+    const value = numberAttr(margins, edge);
+    if (value !== undefined) marginsPt[edge] = value / 20;
+  }
+
+  return {
+    id: `section-${id}`,
+    startType: attr(first(sectionProperties, "type"), "val") ?? "nextPage",
+    orientation,
+    page: {
+      widthPt: widthTwips ? widthTwips / 20 : 612,
+      heightPt: heightTwips ? heightTwips / 20 : 792,
+    },
+    marginsPt,
+    blocks,
+  };
+}
+
+function extractSections(documentNode, body) {
+  const sections = [];
+  let currentBlocks = [];
+  let blockIndex = 0;
+  let tableIndex = 0;
+
+  const finishSection = (sectionProperties) => {
+    sections.push(
+      sectionDescriptor(sectionProperties, sections.length + 1, currentBlocks),
+    );
+    currentBlocks = [];
+  };
+
+  for (const element of body.elements ?? []) {
+    if (element.type !== "element") continue;
+    if (element.name === `${WORD_PREFIX}p`) {
+      currentBlocks.push({ type: "paragraph", index: blockIndex++ });
+      const sectionProperties = first(first(element, "pPr"), "sectPr");
+      if (sectionProperties) finishSection(sectionProperties);
+    } else if (element.name === `${WORD_PREFIX}tbl`) {
+      currentBlocks.push({ type: "table", tableIndex, index: blockIndex++ });
+      tableIndex += 1;
+    } else if (element.name === `${WORD_PREFIX}sectPr`) {
+      finishSection(element);
+    }
+  }
+
+  if (currentBlocks.length) {
+    const lastSectionProperties = descendants(documentNode, "sectPr").at(-1);
+    finishSection(lastSectionProperties);
+  }
+
+  return sections;
+}
+
+function tableOutline(table, index) {
+  const parsed = parseTable(table);
+  const allTables = descendants(table, "tbl").length;
+  return {
+    index,
+    rowCount: parsed.rows.length,
+    cellCount: parsed.rows.reduce((sum, row) => sum + row.cells.length, 0),
+    nestedTableCount: Math.max(0, allTables - 1),
+    widthDxa: parsed.widthDxa,
+    indentTwips: parsed.indentTwips,
+    columnWidthsPercent: parsed.columnWidthsPercent,
+    borders: parsed.borders,
+    rows: parsed.rows,
+  };
+}
+
+async function extractDocxLayout(buffer, sourceName = "uploaded.docx") {
   const zip = await JSZip.loadAsync(buffer);
   const documentFile = zip.file("word/document.xml");
   if (!documentFile)
@@ -209,29 +300,80 @@ async function extractDocxLayout(buffer) {
   const documentNode = first(documentXml, "document");
   const body = first(documentNode, "body");
   if (!body) throw new Error("The Word document has no document body.");
-  const blocks = (body.elements ?? []).flatMap((element) => {
-    if (element.type !== "element") return [];
-    if (element.name === `${WORD_PREFIX}tbl`) return [parseTable(element)];
-    if (element.name === `${WORD_PREFIX}p`) {
-      const properties = first(element, "pPr");
-      const alignment = paragraphAlignment(element);
-      const block = { type: "text", value: "" };
-      if (alignment) block.alignment = alignment;
-      if (first(properties, "pageBreakBefore")) block.pageBreakBefore = true;
-      return [block];
-    }
-    return [];
-  });
-  const page = sectionPage(documentNode);
+  const sections = extractSections(documentNode, body);
+  const allTables = descendants(body, "tbl");
+  const topLevelTables = children(body, "tbl");
+  const paragraphs = descendants(body, "p");
+  const tableRows = descendants(body, "tr");
+  const tableCells = descendants(body, "tc");
+  const drawings = descendants(body, "drawing");
+  const pictures = descendants(body, "pict");
+  const imageParts = Object.keys(zip.files).filter(
+    (name) => name.startsWith("word/media/") && !zip.files[name].dir,
+  );
+  const allBorderContainers = [
+    ...descendants(body, "tcBorders"),
+    ...descendants(body, "tblBorders"),
+  ];
+  const hiddenBorderCount = allBorderContainers.reduce(
+    (count, container) =>
+      count +
+      (container.elements ?? []).filter(
+        (edge) =>
+          edge.type === "element" &&
+          ["nil", "none"].includes(attr(edge, "val")),
+      ).length,
+    0,
+  );
+  const firstSection = sections[0] ?? sectionDescriptor(undefined, 1, []);
+  const packageParts = await Promise.all(
+    Object.entries(zip.files)
+      .filter(([, file]) => !file.dir)
+      .map(async ([name, file]) => {
+        const bytes = await file.async("nodebuffer");
+        const isXml =
+          /\.(?:xml|rels)$/i.test(name) || name === "[Content_Types].xml";
+        return {
+          path: name,
+          encoding: isXml ? "utf8" : "base64",
+          content: isXml ? bytes.toString("utf8") : bytes.toString("base64"),
+          sha256: crypto.createHash("sha256").update(bytes).digest("hex"),
+          date: file.date?.toISOString(),
+        };
+      }),
+  );
 
   return {
-    schemaVersion: "1.0",
-    source: "uploaded.docx",
+    schemaVersion: "2.0",
+    source: sourceName,
     description:
-      "Structure-only Word layout. Text values are intentionally blank.",
-    document: { page: page.page, marginsPt: page.marginsPt },
-    sections: [{ id: "section-1", marginsPt: page.marginsPt, blocks }],
+      "Complete Word package snapshot with a structure index; source content and formatting are preserved.",
+    document: { page: firstSection.page, marginsPt: firstSection.marginsPt },
+    sections,
+    structure: {
+      sectionCount: sections.length,
+      topLevelParagraphCount: children(body, "p").length,
+      nestedParagraphCount: paragraphs.length - children(body, "p").length,
+      topLevelTableCount: topLevelTables.length,
+      tableCountIncludingNested: allTables.length,
+      nestedTableCount: allTables.length - topLevelTables.length,
+      rowCount: tableRows.length,
+      cellCount: tableCells.length,
+      drawingCount: drawings.length,
+      pictureCount: pictures.length,
+      mediaPartCount: imageParts.length,
+      explicitHiddenBorderCount: hiddenBorderCount,
+      tables: topLevelTables.map(tableOutline),
+    },
+    packagePayload: {
+      encoding: "docx-parts-json",
+      sourceSha256: crypto.createHash("sha256").update(buffer).digest("hex"),
+      parts: packageParts,
+    },
   };
 }
 
-module.exports = { extractDocxLayout };
+module.exports = {
+  extractLayout: extractDocxLayout,
+  extractDocxLayout,
+};
